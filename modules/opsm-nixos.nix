@@ -33,6 +33,8 @@
         description = "Access permissions of the installed file, in a form understood by chmod.";
         default = "0400";
       };
+
+      sshKey = mkEnableOption "Use if the secret is an SSH private key, load it in openssh format";
     };
   });
 in {
@@ -141,7 +143,11 @@ in {
         fi
         chown ${v.user}:${v.group} $SECRET_FILE
 
-        op read -o $SECRET_FILE --file-mode ${v.mode} --force "${v.secretRef}"
+        op read -o $SECRET_FILE --file-mode ${v.mode} --force "${v.secretRef}${if cfg.sshKey then "?ssh-format=openssh" else ""}"
+
+        ${if cfg.sshKey then ''
+          printf "\n" >> $SECRET_FILE
+        '' else ""}
 
         ${if cfg.refreshInterval != null then ''
           sleep ${builtins.toString cfg.refreshInterval}
