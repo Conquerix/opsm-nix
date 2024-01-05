@@ -39,7 +39,7 @@ in {
   options.opsm = {
     enable = mkEnableOption "1Password secrets management";
 
-    tmpfs = mkEnableOption "Enable mounting /run/secrets on tmpfs if it has not been done yet."
+    tmpfs = mkEnableOption "Enable mounting /run/secrets on tmpfs if it has not been done yet.";
 
     secretDir = mkOption {
       type = types.str;
