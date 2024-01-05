@@ -8,8 +8,6 @@
   inherit (config.users) users;
   cfg = config.opsm;
 
-  secretDir = "/run/secrets";
-
   secretType = types.submodule ({config, ...}: {
     options = {
       secretRef = mkOption {
@@ -40,6 +38,16 @@
 in {
   options.opsm = {
     enable = mkEnableOption "1Password secrets management";
+
+    tmpfs = mkEnableOption "Enable mounting /run/secrets on tmpfs if it has not been done yet."
+
+    secretDir = mkOption {
+      type = types.str;
+      default = "/run/secrets";
+      description = ''
+        Path to the keys downloaded with 1password.
+      '';
+    };
 
     serviceAccountTokenPath = mkOption {
       type = types.str;
@@ -75,15 +83,15 @@ in {
   config = lib.mkIf cfg.enable {
     # During activation, ensure a ramfs exists at the destination directory
     # TODO use admin group instead of keys if isDarwin
-    system.activationScripts.opsm-secrets-init = {
+    system.activationScripts.opsm-secrets-init = lib.mkIf cfg.tmpfs {
       # This activation script is based off of agenix's mountCommand activation
       text = ''
-        mkdir -p ${secretDir}
-        chmod 0751 ${secretDir}
-        if ! grep -q "${secretDir} ramfs" /proc/mounts; then
-          mount -t ramfs none ${secretDir} -o nodev,nosuid,mode=0751
+        mkdir -p ${cfg.secretDir}
+        chmod 0751 ${cfg.secretDir}
+        if ! grep -q "${cfg.secretDir} tmpfs" /proc/mounts; then
+          mount -t tmpfs none ${cfg.secretDir} -o nodev,nosuid,mode=0751
         fi
-        chown :keys ${secretDir}
+        chown :keys ${cfg.secretDir}
       '';
     };
 
@@ -127,7 +135,7 @@ in {
         fi
 
         # Create file with permissions before installing secret material
-        export SECRET_FILE="${secretDir}/${n}"
+        export SECRET_FILE="${cfg.secretDir}/${n}"
         if [ ! -f $SECRET_FILE ]; then
           touch $SECRET_FILE
         fi
