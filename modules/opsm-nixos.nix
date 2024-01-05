@@ -143,9 +143,9 @@ in {
         fi
         chown ${v.user}:${v.group} $SECRET_FILE
 
-        op read -o $SECRET_FILE --file-mode ${v.mode} --force "${v.secretRef}${if cfg.sshKey then "?ssh-format=openssh" else ""}"
+        op read -o $SECRET_FILE --file-mode ${v.mode} --force "${v.secretRef}${if v.sshKey then "?ssh-format=openssh" else ""}"
 
-        ${if cfg.sshKey then ''
+        ${if v.sshKey then ''
           printf "\n" >> $SECRET_FILE
         '' else ""}
 
