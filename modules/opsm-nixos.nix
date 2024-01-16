@@ -145,6 +145,7 @@ in {
         op read -o $SECRET_FILE --file-mode ${v.mode} --force "${v.secretRef}${if v.sshKey then "?ssh-format=openssh" else ""}"
 
         chown ${v.user}:${v.group} $SECRET_FILE
+        chmod ${v.mode} $SECRET_FILE
 
         ${if v.sshKey then ''
           printf "\n" >> $SECRET_FILE
